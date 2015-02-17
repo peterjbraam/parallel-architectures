@@ -1,0 +1,287 @@
+\documentclass{beamer}
+
+\usepackage{helvet}
+\renewcommand{\rmdefault}{\sfdefault}
+
+\usepackage{amsmath, amsfonts, epsfig, xspace}
+\usepackage{algorithm,algorithmic}
+\usepackage{pstricks,pst-node}
+\usepackage{multimedia}
+\usepackage[normal,tight,center]{subfigure}
+\setlength{\subfigcapskip}{-.5em}
+
+\usepackage{beamerthemesplit}
+\usetheme{Antibes}
+%\usecolortheme{structure}
+\usefonttheme{structurebold}
+
+\author[Peter Braam]{Peter Braam}
+
+\title[Karmarkar Architectures\hspace{2em}\insertframenumber/\inserttotalframenumber]{Parallel Architectures of Narendra Karmarkar}
+
+\date{Feb, 2015} %leave out for today's date to be insterted
+
+\institute{Braam Research, LLC \& University of Cambridge}
+
+\begin{document}
+
+\AtBeginSection[]
+{
+\begin{frame}{Contents}
+\tableofcontents[currentsection]
+\end{frame}
+}
+
+\maketitle
+
+\tableofcontents 
+
+\section{Introduction}
+
+\begin{frame}{Narendra Karmarkar}
+
+
+\begin{itemize}
+\item Invented a famous new linear programming algorithm in 80's
+\item Published ~5 papers 1989-1994 about this parallel architecture
+\item In 2005 TATA founded CRL in Pune to commercialize the architecture
+\item A year later, Karmarkar had left, CRL looked only at a little bit
+\item Karmarkar is now an independent consultant in India
+\item In 2009 I learned about this. One of my startups tried to work with Karmarkar.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A mathematical approach to developing parallel algorithms}
+
+\begin{block}{
+Global parallel instructions and sequences of such instructions}
+\begin{itemize}
+\item Derived from geometric symmetries of the architecture
+\item Limited concurrency
+\item Good load balancing
+\item No contention for network and memory 
+\item A method ("compiler") to apply this
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Usability}
+\begin{itemize}
+\item It has been applied to a limited set of problems
+\item The symmetry group is the crux, not specific hardware
+\item The optimizations connect data-centric and instruction-centric approach
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Hardware}
+\begin{itemize}
+\item
+In the older papers (~1990) Karmarkar described pretty complete hardware architecture.  May be good, probably not economical.
+\item
+In 2008 he published ideas using nano-vacuum electronics to package the architecture in a radically different manner.
+\item
+Think of a cylinder with 1000's of cores on the surface and a quantum electron tunneling network connecting them.
+\item
+Key property of the network is extremely high bandwidth, latency governed by speed of light and electronics.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The scientific state of the concepts}
+
+\begin{block}{Key ideas seem sound}
+\begin{itemize}
+\item Mathematics for construction of parallel programs
+\item The network topology
+\item A few important examples
+\item Various extensions seem sound (e.g. re-compute vs memory tradeoff)
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{However ...}
+\begin{block}{Details are lacking}
+\begin{itemize}
+\item The compiler is under-specified but has potential
+\item Even the simplest examples are not implemented fully
+\item Missing complexity computations and benchmarking
+\item It's pretty important to test for wider applicability
+\begin{enumerate}
+\item Ambitious ones: produce parallel Prolog programs
+\item Modest ones: programs with different data access patterns
+\end{enumerate}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{What has been done commercially}
+\begin{itemize}
+\item We don't know everything - secrets abound
+\item CRL had a concrete idea how to exploit the network topology
+\item Possibly others have tried to look at this
+\item It's probably not ready for industry but a very promising research project
+\end{itemize}
+\end{frame}
+
+\section{Finite Geometries, Network Topologies and Parallel Algorithms}  % add these to see outline in slides
+
+\begin{frame}{Memory, Processor, Interconnect}
+  \begin{block}{Finite projective space $\mathbb{P}_2(s)$:}
+  \begin{itemize}
+  \item This has $s^2+s+1$ points and lines
+  \item Each line contains $s+1$ points
+  \item There are $s(s+1)$ ordered pairs of points on a line
+  \item Denote $m$ dimensional subspaces by $\Omega_m$
+  \end{itemize}
+  \end{block}
+  \begin{block}{2-Dimensional PG parallel system:}
+  \begin{itemize}
+  \item Each {\bf point} represents a {\bf memory module} $M$
+  \item Each {\bf line} represents a {\bf processor} $P$
+  \item If $M \in P$ there is a network connection from $P$ to $M$
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Matrix Multiplication}
+  Consider the matrix vector computation $x_i = \sum_{j=1}^{n} A_{i,j} y_j$
+  \begin{itemize}
+  \item Target a case where the multiplication is repeatedly performed and $A$ is sparse
+  \item Assume a multi-processor environment is used
+  \end{itemize}
+  Obstacles to good parallelism are:
+  \begin{itemize} 
+  \item Concurrent accumulation of the $x$'s
+  \item Even data distribution
+  \item Network contention
+  \end{itemize}
+  \end{frame}
+  
+  
+  \begin{frame} {Algorithm}
+  \begin{itemize}
+  \item Take hash function $l:\{1 \dots n\} \rightarrow \Omega_0$, let $\mu=f(i), \nu=f(j)$
+  \item Assume $x_i$ and $y_j$ are stored in memories $M_\mu,M_\nu \in \Omega_0$
+  \item Recall that $M_\mu,M_\nu \in \Omega_0$ determine a processor $P_{\mu,\nu} \in \Omega_1$
+  \item $P_{\mu,\nu}$ should
+    \begin{enumerate} 
+    \item Store $\{A_{i,j} | f(i) = \mu, f(j)=\nu\}$ in its local memory
+    \item Fetch $x_i$, $y_j$ and 
+    \item Compute $x_i = x_i + A_{i,j}y_j$
+    \item Store the updated $x_i$
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Perfect Access Patterns}
+\begin{block}{A set $AP$ of triples $\Omega_0 \times \Omega_0 \times \Omega_1$ is  {\bf perfect access pattern} if:}
+  \begin{itemize}
+  \item $P_\pi = <M_\mu, N_nu>$ for each triple $(M_\mu, N_\nu, P_\pi) \in AP$ 
+  \item The two projections: $A \rightarrow \Omega_0$ are bijective (i.e. every memory element is in a unique triple)
+  \item The projection $A \rightarrow \Omega_1$ is bijective (i.e. every processor is in a unique triple)
+  \end{itemize}
+  \end{block}
+  
+  \begin{block}{The perfect access pattern is a global parallel instruction}
+  \begin{itemize} 
+  \item There are no conflicting memory accesses
+  \item All processors are used equally
+  \item All network connections are used evenly
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Sequences of Access Patterns}
+
+\begin{block}{A sequence of perfect access patterns}
+\begin{itemize}
+\item Is {\bf complete} if it contains every pair $M_\mu, N_\nu$
+\item Is {\bf perfect} if it uses all network connections evenly
+\end{itemize}
+\end{block}
+
+\begin{itemize}
+\item A complete sequence contains enough instructions to execute a full matrix multiplication.
+\item Perfect patterns can be created as the orbit of a pair $(M,N) \in \Omega_0 \times \Omega_0$ under the automorphism group of $\mathbb{P}_2(s)$
+\item Complete sequences can be created as a set of orbits for all pairs in a line.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Geometries of other dimensions}
+
+\begin{block}{Forming a join of database tables}
+\begin{itemize}
+\item $(\alpha, \beta) and (\gamma, \delta)$ are an element of the join if $\beta = \gamma$.
+\item Using the 4-dimensional $\mathbb{P}_4(s)$ lines represent memory modules, planes are processors.
+\item The pairs determine lines in $\mathbb{P}_4(s)$
+\item Boolean expression $\beta == \gamma$ need only be evaluated on processors represented by planes spanned by $\langle \alpha, \beta, \gamma \rangle$
+\end{itemize}
+\end{block}
+A perfect patterns and complete sequences can be found as before.
+\end{frame}
+
+
+\begin{frame}{Finite Fields}
+
+\begin{itemize}
+\item There is a $d$-dimensional finite projective space for every finite field.
+\item The only finite fields are the Galois fields $GF(p^q)$ where $p$ is prime and $q>0$ an integer
+\item A parallel architecture can be build with memory units being the elements of $\Omega_m$ and processors elements of $\Omega_p$ if $m<p$. These would allow for parallel operations on $m+1$ arguments.
+\item If $m+p = d-1$ the number of processors equals the number of memories.  Architectures with more memories than processors obtain more memory bandwidth but are unconventional.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Sample 2D and 4D systems}
+\begin{columns}
+\column{.5\textwidth}
+2D architectures
+
+\begin{tabular}{c|c|c}
+\textbf{p} & \textbf{q} & \textbf{\#P} \\
+\hline
+\hline
+2 & 1 &7 \\
+\hline 
+2 & 2 & 21\\
+\hline
+3 & 1 & 13 \\
+\end{tabular}
+
+\column{.5\textwidth}
+4D architectures
+
+\begin{tabular}{c|c|c}
+p & q &\#P \\
+2 & \textbf{header 2} & \textbf{header 4} \\
+\hline
+\hline
+\textbf{header 4} & cell 1 & cell 2 & cell 3 \\
+\hline
+\textbf{header 5} & cell 4 & cell 5 & cell 6 \\
+\end{tabular}
+
+\end{columns}
+\end{frame}
+
+\begin{frame}{Network Topology}
+
+\begin{itemize}
+\item The full network defined by incidence of memory modules $M\in\Omeage_m$ in processors $P\in\Omega_p$ has beautiful properties: e.g. for $d==2,4$ any two processors are separated by at most 2,4 hops.
+\item If only perfect patterns are used for communication and a switch can be programmed to set up the required connections then only one connection per memory module is needed and a congestion free network with uniform latency arises.
+\end{itemize}
+
+\end{frame}
+
+\section{The compiler}
+
+\section{A nano-vacuum electronics network}
+
+\section{Conclusions}
+
+
+\begin{frame}
+  \frametitle{Thank you!}
+\end{frame}
+\end{document}
